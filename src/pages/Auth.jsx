@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient.js";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
   const [mode, setMode] = useState("signin"); // signin | signup | forgot
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,7 +36,7 @@ export default function Auth() {
         if (error) throw error;
         if (data.session) {
           // Email confirmation is off — user is already signed in.
-          navigate("/");
+          navigate(redirectTo);
           return;
         }
         setMessage("Account created! Check your email to confirm, then sign in.");
@@ -42,7 +44,7 @@ export default function Auth() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate("/");
+        navigate(redirectTo);
       }
     } catch (err) {
       setError(err.message ?? "Something went wrong. Please try again.");

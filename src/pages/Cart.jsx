@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "../context/CartContext.jsx";
+import { supabase } from "../lib/supabaseClient.js";
 
 const FREE_SHIPPING_THRESHOLD = 999;
 const SHIPPING_FEE = 79;
@@ -8,9 +10,24 @@ const SHIPPING_FEE = 79;
 export default function Cart() {
   const { items, updateQuantity, removeItem, subtotal } = useCart();
   const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        navigate("/auth?redirect=/cart");
+      } else {
+        setChecking(false);
+      }
+    });
+  }, [navigate]);
 
   const shipping = items.length === 0 || subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
   const total = subtotal + shipping;
+
+  if (checking) {
+    return <div className="max-w-3xl mx-auto px-5 py-20 text-center text-muted">Loading…</div>;
+  }
 
   if (items.length === 0) {
     return (

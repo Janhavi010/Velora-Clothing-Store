@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext.jsx";
 import { supabase } from "../lib/supabaseClient.js";
@@ -37,6 +37,14 @@ function Field({ label, id, value, onChange }) {
 export default function Checkout() {
   const { items, subtotal, clearCart } = useCart();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        navigate("/auth?redirect=/checkout");
+      }
+    });
+  }, [navigate]);
 
   const [form, setForm] = useState({ name: "", phone: "", address: "", city: "", state: "", pincode: "" });
   const [paymentMethod, setPaymentMethod] = useState("cod");

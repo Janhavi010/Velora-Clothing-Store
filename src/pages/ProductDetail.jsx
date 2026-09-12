@@ -61,9 +61,14 @@ export default function ProductDetail() {
   const hue = CATEGORY_HUE[product.category] ?? CATEGORY_HUE.tops;
   const outOfStock = product.stock <= 0;
 
-  function handleAddToCart(goToCart) {
+  async function handleAddToCart(goToCart) {
     if (product.sizes?.length && !size) {
       alert("Please select a size.");
+      return;
+    }
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      navigate(`/auth?redirect=${encodeURIComponent(`/product/${product.id}`)}`);
       return;
     }
     addItem({
@@ -76,6 +81,28 @@ export default function ProductDetail() {
       quantity,
     });
     if (goToCart) navigate("/cart");
+  }
+
+  async function handleBuyNow() {
+    if (product.sizes?.length && !size) {
+      alert("Please select a size.");
+      return;
+    }
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      navigate(`/auth?redirect=${encodeURIComponent(`/product/${product.id}`)}`);
+      return;
+    }
+    addItem({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: images?.[0] ?? "",
+      size,
+      color,
+      quantity,
+    });
+    navigate("/checkout");
   }
 
   return (
@@ -162,7 +189,7 @@ export default function ProductDetail() {
             <button onClick={() => handleAddToCart(false)} className="flex-1 border border-ink text-ink text-sm py-2.5 rounded-full hover:bg-ink/5">
               Add to Cart
             </button>
-            <button onClick={() => handleAddToCart(true)} className="flex-1 bg-ink text-white text-sm py-2.5 rounded-full hover:bg-[#453C32]">
+            <button onClick={handleBuyNow} className="flex-1 bg-ink text-white text-sm py-2.5 rounded-full hover:bg-[#453C32]">
               Buy Now
             </button>
           </div>
